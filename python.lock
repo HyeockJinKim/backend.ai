@@ -66,6 +66,7 @@
 //     "networkx~=3.3.0",
 //     "packaging>=24.1",
 //     "pexpect~=4.8",
+//     "prometheus-client~=0.21.0",
 //     "psutil~=6.0",
 //     "pycryptodome>=3.20.0",
 //     "pydantic~=2.9.2",
@@ -3005,6 +3006,26 @@
           "artifacts": [
             {
               "algorithm": "sha256",
+              "hash": "4fa6b4dd0ac16d58bb587c04b1caae65b8c5043e85f778f42f5f632f6af2e166",
+              "url": "https://files.pythonhosted.org/packages/84/2d/46ed6436849c2c88228c3111865f44311cff784b4aabcdef4ea2545dbc3d/prometheus_client-0.21.0-py3-none-any.whl"
+            },
+            {
+              "algorithm": "sha256",
+              "hash": "96c83c606b71ff2b0a433c98889d275f51ffec6c5e267de37c7a2b5c9aa9233e",
+              "url": "https://files.pythonhosted.org/packages/e1/54/a369868ed7a7f1ea5163030f4fc07d85d22d7a1d270560dab675188fb612/prometheus_client-0.21.0.tar.gz"
+            }
+          ],
+          "project_name": "prometheus-client",
+          "requires_dists": [
+            "twisted; extra == \"twisted\""
+          ],
+          "requires_python": ">=3.8",
+          "version": "0.21.0"
+        },
+        {
+          "artifacts": [
+            {
+              "algorithm": "sha256",
               "hash": "f49a827f90062e411f1ce1f854f2aedb3c23353244f8108b89283587397ac10e",
               "url": "https://files.pythonhosted.org/packages/a9/6a/fd08d94654f7e67c52ca30523a178b3f8ccc4237fce4be90d39c938a831a/prompt_toolkit-3.0.48-py3-none-any.whl"
             },
@@ -4908,7 +4929,7 @@
               "url": "https://files.pythonhosted.org/packages/e5/90/cc6d3dab4fc33b6f80d498c6276995fcbe16db1005141be6133345b597c1/yarl-1.13.1-cp312-cp312-manylinux_2_17_s390x.manylinux2014_s390x.whl"
             }
           ],
-          "project_name": "yarl",
+            "project_name": "yarl",
           "requires_dists": [
             "idna>=2.0",
             "multidict>=4.0"
@@ -5003,6 +5024,7 @@
     "networkx~=3.3.0",
     "packaging>=24.1",
     "pexpect~=4.8",
+    "prometheus-client~=0.21.0",
     "psutil~=6.0",
     "pycryptodome>=3.20.0",
     "pydantic~=2.9.2",
