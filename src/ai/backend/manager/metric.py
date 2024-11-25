@@ -113,70 +113,71 @@ class ComponentMetrics:
 
 
 class CommonMetrics:
-    _events_total: Counter
     _errors_total: Counter
 
     def __init__(self) -> None:
-        self._events_total = Counter(
-            name="backendai_events_total",
-            documentation="Total number of events",
-            labelnames=["event"],
-        )
         self._errors_total = Counter(
             name="backendai_errors_total",
             documentation="Total number of errors",
             labelnames=["error_type"],
         )
 
-    def events_total(self, *, event: str) -> Counter:
-        return self._events_total.labels(event=event)
-
     def errors_total(self, *, error_type: str) -> Counter:
         return self._errors_total.labels(error_type=error_type)
 
 
-class SchedulerMetrics:
-    _schedule_attempts_total: Counter
-    _schedule_failures_total: Counter
-    _schedule_retries_total: Counter
+class EventMetrics:
+    _event_total: Counter
+    _event_failure_count: Counter
+    _event_retry_count: Counter
+    _event_processing_time: Histogram
 
     def __init__(self) -> None:
-        self._schedule_attempts_total = Counter(
-            name="backendai_scheduler_schedule_attempts_total",
-            documentation="Total number of schedule attempts",
-            labelnames=["status"],
+        self._event_total = Counter(
+            name="backendai_event_total",
+            documentation="Total number of events processed",
+            labelnames=["event_type"],
         )
-        self._schedule_failures_total = Counter(
-            name="backendai_scheduler_schedule_failures_total",
-            documentation="Total number of schedule failures",
-            labelnames=["reason"],
+        self._event_failure_count = Counter(
+            name="backendai_event_failure_count",
+            documentation="Number of failed events",
+            labelnames=["event_type"],
         )
-        self._schedule_retries_total = Counter(
-            name="backendai_scheduler_schedule_retries_total",
-            documentation="Total number of schedule retries",
+        self._event_retry_count = Counter(
+            name="backendai_event_retry_count",
+            documentation="Number of retries for events",
+            labelnames=["event_type"],
+        )
+        self._event_processing_time = Histogram(
+            name="backendai_event_processing_time",
+            documentation="Processing time of events in seconds",
+            labelnames=["event_type", "status"],
         )
 
-    def schedule_attempts_total(self, *, status: str) -> Counter:
-        return self._schedule_attempts_total.labels(status=status)
+    def event_total(self, *, event_type: str) -> Counter:
+        return self._event_total.labels(event_type=event_type)
 
-    def schedule_failures_total(self, *, reason: str) -> Counter:
-        return self._schedule_failures_total.labels(reason=reason)
+    def event_failure_count(self, *, event_type: str) -> Counter:
+        return self._event_failure_count.labels(event_type=event_type)
 
-    def schedule_retries_total(self) -> Counter:
-        return self._schedule_retries_total
+    def event_retry_count(self, *, event_type: str) -> Counter:
+        return self._event_retry_count.labels(event_type=event_type)
+
+    def event_processing_time(self, *, event_type: str, status: str) -> Histogram:
+        return self._event_processing_time.labels(event_type=event_type, status=status)
 
 
 class MetricRegistry:
     api: APIMetrics
     component: ComponentMetrics
     common: CommonMetrics
-    scheduler: SchedulerMetrics
+    event: EventMetrics
 
     def __init__(self) -> None:
         self.api = APIMetrics()
         self.component = ComponentMetrics()
         self.common = CommonMetrics()
-        self.scheduler = SchedulerMetrics()
+        self.event = EventMetrics()
 
     def to_prometheus(self) -> bytes:
         return generate_latest()
