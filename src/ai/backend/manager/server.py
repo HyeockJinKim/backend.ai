@@ -332,7 +332,7 @@ async def metric_middleware(request: web.Request, handler: WebRequestHandler) ->
     finally:
         end = time.perf_counter()
         elapsed = end - start
-        root_ctx.metric_registry.api.update_request_status(
+        root_ctx.metric_registry.api.update_request_metric(
             method=request.method, endpoint=endpoint, status_code=status_code, duration=elapsed
         )
 

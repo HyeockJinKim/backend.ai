@@ -7,6 +7,7 @@ import hashlib
 import logging
 import secrets
 import socket
+import time
 import uuid
 from collections import defaultdict
 from typing import (
@@ -934,6 +935,20 @@ class CoalescingState:
             return True
 
 
+class EventMetricProtocol(Protocol):
+    def update_success_event_metric(self, *, event_type: str, duration: float) -> None: ...
+
+    def update_failure_event_metric(self, *, event_type: str, duration: float) -> None: ...
+
+
+class NopEventMetric:
+    def update_success_event_metric(self, *, event_type: str, duration: float) -> None:
+        pass
+
+    def update_failure_event_metric(self, *, event_type: str, duration: float) -> None:
+        pass
+
+
 class EventDispatcher(aobject):
     """
     We have two types of event handlers: consumer and subscriber.
@@ -959,6 +974,7 @@ class EventDispatcher(aobject):
 
     _log_events: bool
     _consumer_name: str
+    _event_metric: EventMetricProtocol
 
     def __init__(
         self,
@@ -972,6 +988,7 @@ class EventDispatcher(aobject):
         node_id: str | None = None,
         consumer_exception_handler: AsyncExceptionHandler | None = None,
         subscriber_exception_handler: AsyncExceptionHandler | None = None,
+        event_metric: EventMetricProtocol = NopEventMetric,
     ) -> None:
         _redis_config = redis_config.copy()
         if service_name:
@@ -994,6 +1011,7 @@ class EventDispatcher(aobject):
             name="subscriber_taskgroup",
             exception_handler=subscriber_exception_handler,
         )
+        self._event_metric = event_metric
 
     async def __ainit__(self) -> None:
         self.consumer_loop_task = asyncio.create_task(self._consume_loop())
@@ -1161,15 +1179,26 @@ class EventDispatcher(aobject):
                     return
                 if msg_data is None:
                     continue
+                start = time.perf_counter()
+                event_name = None
                 try:
+                    event_name = msg_data[b"name"].decode()
                     await self.dispatch_consumers(
-                        msg_data[b"name"].decode(),
+                        event_name,
                         msg_data[b"source"].decode(),
                         msgpack.unpackb(msg_data[b"args"]),
+                    )
+                    self._event_metric.update_success_event_metric(
+                        event_type=event_name,
+                        duration=time.perf_counter() - start,
                     )
                 except asyncio.CancelledError:
                     raise
                 except Exception:
+                    self._event_metric.update_failure_event_metric(
+                        event_type=event_name,
+                        duration=time.perf_counter() - start,
+                    )
                     log.exception("EventDispatcher.consume(): unexpected-error")
 
     @preserve_termination_log
@@ -1185,15 +1214,26 @@ class EventDispatcher(aobject):
                     return
                 if msg_data is None:
                     continue
+                start = time.perf_counter()
+                event_name = None
                 try:
+                    event_name = msg_data[b"name"].decode()
                     await self.dispatch_subscribers(
-                        msg_data[b"name"].decode(),
+                        event_name,
                         msg_data[b"source"].decode(),
                         msgpack.unpackb(msg_data[b"args"]),
+                    )
+                    self._event_metric.update_success_event_metric(
+                        event_type=event_name,
+                        duration=time.perf_counter() - start,
                     )
                 except asyncio.CancelledError:
                     raise
                 except Exception:
+                    self._event_metric.update_failure_event_metric(
+                        event_type=event_name,
+                        duration=time.perf_counter() - start,
+                    )
                     log.exception("EventDispatcher.subscribe(): unexpected-error")
 
 
