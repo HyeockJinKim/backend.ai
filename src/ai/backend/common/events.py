@@ -1180,23 +1180,25 @@ class EventDispatcher(aobject):
                 if msg_data is None:
                     continue
                 start = time.perf_counter()
-                event_name = None
+                event_type = "unknown"
                 try:
                     event_name = msg_data[b"name"].decode()
+                    if event_name and isinstance(event_name, str):
+                        event_type = str(event_name)
                     await self.dispatch_consumers(
                         event_name,
                         msg_data[b"source"].decode(),
                         msgpack.unpackb(msg_data[b"args"]),
                     )
                     self._event_metric.update_success_event_metric(
-                        event_type=event_name,
+                        event_type=event_type,
                         duration=time.perf_counter() - start,
                     )
                 except asyncio.CancelledError:
                     raise
                 except Exception:
                     self._event_metric.update_failure_event_metric(
-                        event_type=event_name,
+                        event_type=event_type,
                         duration=time.perf_counter() - start,
                     )
                     log.exception("EventDispatcher.consume(): unexpected-error")
@@ -1215,23 +1217,25 @@ class EventDispatcher(aobject):
                 if msg_data is None:
                     continue
                 start = time.perf_counter()
-                event_name = None
+                event_type = "unknown"
                 try:
                     event_name = msg_data[b"name"].decode()
+                    if event_name and isinstance(event_name, str):
+                        event_type = str(event_name)
                     await self.dispatch_subscribers(
                         event_name,
                         msg_data[b"source"].decode(),
                         msgpack.unpackb(msg_data[b"args"]),
                     )
                     self._event_metric.update_success_event_metric(
-                        event_type=event_name,
+                        event_type=event_type,
                         duration=time.perf_counter() - start,
                     )
                 except asyncio.CancelledError:
                     raise
                 except Exception:
                     self._event_metric.update_failure_event_metric(
-                        event_type=event_name,
+                        event_type=event_type,
                         duration=time.perf_counter() - start,
                     )
                     log.exception("EventDispatcher.subscribe(): unexpected-error")
